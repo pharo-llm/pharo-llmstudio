@@ -7,22 +7,6 @@ Class {
 }
 
 { #category : 'tests' }
-LLMConditionalStepTest >> testTrueBranch [
-
-	| step result |
-	step := LLMConditionalStep
-		        condition: [ :ctx | (ctx at: #value) > 10 ]
-		        ifTrue: (LLMBlockStep block: [ :ctx |
-				         ctx output: 'big'.
-				         ctx ])
-		        ifFalse: (LLMBlockStep block: [ :ctx |
-				         ctx output: 'small'.
-				         ctx ]).
-	result := step runWith: { (#value -> 20) } asDictionary.
-	self assert: result output equals: 'big'
-]
-
-{ #category : 'tests' }
 LLMConditionalStepTest >> testFalseBranch [
 
 	| step result |
@@ -36,19 +20,6 @@ LLMConditionalStepTest >> testFalseBranch [
 				         ctx ]).
 	result := step runWith: { (#value -> 5) } asDictionary.
 	self assert: result output equals: 'small'
-]
-
-{ #category : 'tests' }
-LLMConditionalStepTest >> testNoFalseBranch [
-
-	| step result |
-	step := LLMConditionalStep
-		        condition: [ :ctx | false ]
-		        ifTrue: (LLMBlockStep block: [ :ctx |
-				         ctx output: 'true'.
-				         ctx ]).
-	result := step runWith: Dictionary new.
-	self assert: result output isNil
 ]
 
 { #category : 'tests' }
@@ -70,6 +41,35 @@ LLMConditionalStepTest >> testInPipeline [
 		            yourself.
 	result := pipeline runWith: Dictionary new.
 	self assert: result output equals: 'pass'
+]
+
+{ #category : 'tests' }
+LLMConditionalStepTest >> testNoFalseBranch [
+
+	| step result |
+	step := LLMConditionalStep
+		        condition: [ :ctx | false ]
+		        ifTrue: (LLMBlockStep block: [ :ctx |
+				         ctx output: 'true'.
+				         ctx ]).
+	result := step runWith: Dictionary new.
+	self assert: result output isNil
+]
+
+{ #category : 'tests' }
+LLMConditionalStepTest >> testTrueBranch [
+
+	| step result |
+	step := LLMConditionalStep
+		        condition: [ :ctx | (ctx at: #value) > 10 ]
+		        ifTrue: (LLMBlockStep block: [ :ctx |
+				         ctx output: 'big'.
+				         ctx ])
+		        ifFalse: (LLMBlockStep block: [ :ctx |
+				         ctx output: 'small'.
+				         ctx ]).
+	result := step runWith: { (#value -> 20) } asDictionary.
+	self assert: result output equals: 'big'
 ]
 
 { #category : 'tests' }

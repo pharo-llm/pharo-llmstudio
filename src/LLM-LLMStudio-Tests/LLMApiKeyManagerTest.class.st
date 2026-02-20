@@ -7,12 +7,13 @@ Class {
 }
 
 { #category : 'tests' }
-LLMApiKeyManagerTest >> testRegisterAndRetrieveKey [
+LLMApiKeyManagerTest >> testMissingKeyRaisesError [
 
 	| manager |
 	manager := LLMApiKeyManager new.
-	manager registerKey: 'sk-test-123' forProvider: #openai.
-	self assert: (manager apiKeyFor: #openai) equals: 'sk-test-123'
+	self
+		should: [ manager apiKeyFor: #nonexistent ]
+		raise: LLMValidationError
 ]
 
 { #category : 'tests' }
@@ -27,6 +28,25 @@ LLMApiKeyManagerTest >> testMultipleProviders [
 ]
 
 { #category : 'tests' }
+LLMApiKeyManagerTest >> testOverwriteKey [
+
+	| manager |
+	manager := LLMApiKeyManager new.
+	manager registerKey: 'old-key' forProvider: #openai.
+	manager registerKey: 'new-key' forProvider: #openai.
+	self assert: (manager apiKeyFor: #openai) equals: 'new-key'
+]
+
+{ #category : 'tests' }
+LLMApiKeyManagerTest >> testRegisterAndRetrieveKey [
+
+	| manager |
+	manager := LLMApiKeyManager new.
+	manager registerKey: 'sk-test-123' forProvider: #openai.
+	self assert: (manager apiKeyFor: #openai) equals: 'sk-test-123'
+]
+
+{ #category : 'tests' }
 LLMApiKeyManagerTest >> testRemoveKey [
 
 	| manager |
@@ -37,24 +57,4 @@ LLMApiKeyManagerTest >> testRemoveKey [
 	self
 		should: [ manager apiKeyFor: #openai ]
 		raise: LLMValidationError
-]
-
-{ #category : 'tests' }
-LLMApiKeyManagerTest >> testMissingKeyRaisesError [
-
-	| manager |
-	manager := LLMApiKeyManager new.
-	self
-		should: [ manager apiKeyFor: #nonexistent ]
-		raise: LLMValidationError
-]
-
-{ #category : 'tests' }
-LLMApiKeyManagerTest >> testOverwriteKey [
-
-	| manager |
-	manager := LLMApiKeyManager new.
-	manager registerKey: 'old-key' forProvider: #openai.
-	manager registerKey: 'new-key' forProvider: #openai.
-	self assert: (manager apiKeyFor: #openai) equals: 'new-key'
 ]

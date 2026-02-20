@@ -18,6 +18,17 @@ LLMMemoryTest >> testBufferMemoryAddMessages [
 ]
 
 { #category : 'tests - buffer' }
+LLMMemoryTest >> testBufferMemoryClear [
+
+	| memory |
+	memory := LLMBufferMemory new.
+	memory addUserMessage: 'Hello'.
+	memory addAssistantMessage: 'Hi'.
+	memory clear.
+	self assert: memory size equals: 0
+]
+
+{ #category : 'tests - buffer' }
 LLMMemoryTest >> testBufferMemoryWithSystemMessage [
 
 	| memory messages |
@@ -30,17 +41,6 @@ LLMMemoryTest >> testBufferMemoryWithSystemMessage [
 	self assert: messages second isUser
 ]
 
-{ #category : 'tests - buffer' }
-LLMMemoryTest >> testBufferMemoryClear [
-
-	| memory |
-	memory := LLMBufferMemory new.
-	memory addUserMessage: 'Hello'.
-	memory addAssistantMessage: 'Hi'.
-	memory clear.
-	self assert: memory size equals: 0
-]
-
 { #category : 'tests - sliding' }
 LLMMemoryTest >> testSlidingWindowBasic [
 
@@ -51,6 +51,24 @@ LLMMemoryTest >> testSlidingWindowBasic [
 	messages := memory messages.
 	self assert: messages size equals: 4.
 	self assert: messages first content equals: 'Message 7'
+]
+
+{ #category : 'tests - sliding' }
+LLMMemoryTest >> testSlidingWindowDefaultSize [
+
+	| memory |
+	memory := LLMSlidingWindowMemory new.
+	self assert: memory windowSize equals: 10
+]
+
+{ #category : 'tests - sliding' }
+LLMMemoryTest >> testSlidingWindowUnderSize [
+
+	| memory messages |
+	memory := LLMSlidingWindowMemory windowSize: 10.
+	memory addUserMessage: 'Hello'.
+	messages := memory messages.
+	self assert: messages size equals: 1
 ]
 
 { #category : 'tests - sliding' }
@@ -67,22 +85,4 @@ LLMMemoryTest >> testSlidingWindowWithSystemMessage [
 	self assert: messages first isSystem.
 	self assert: messages second content equals: 'Two'.
 	self assert: messages third content equals: 'Three'
-]
-
-{ #category : 'tests - sliding' }
-LLMMemoryTest >> testSlidingWindowUnderSize [
-
-	| memory messages |
-	memory := LLMSlidingWindowMemory windowSize: 10.
-	memory addUserMessage: 'Hello'.
-	messages := memory messages.
-	self assert: messages size equals: 1
-]
-
-{ #category : 'tests - sliding' }
-LLMMemoryTest >> testSlidingWindowDefaultSize [
-
-	| memory |
-	memory := LLMSlidingWindowMemory new.
-	self assert: memory windowSize equals: 10
 ]

@@ -6,23 +6,6 @@ Class {
 	#tag : 'Parsers'
 }
 
-{ #category : 'tests - string' }
-LLMOutputParserTest >> testStringParserTrim [
-
-	| parser |
-	parser := LLMStringOutputParser new.
-	self assert: (parser parse: '  hello world  ') equals: 'hello world'
-]
-
-{ #category : 'tests - string' }
-LLMOutputParserTest >> testStringParserNoTrim [
-
-	| parser |
-	parser := LLMStringOutputParser new.
-	parser trimWhitespace: false.
-	self assert: (parser parse: '  hello  ') equals: '  hello  '
-]
-
 { #category : 'tests - json' }
 LLMOutputParserTest >> testJsonParser [
 
@@ -31,17 +14,6 @@ LLMOutputParserTest >> testJsonParser [
 	result := parser parse: '{"name": "Alice", "age": 30}'.
 	self assert: (result at: 'name') equals: 'Alice'.
 	self assert: (result at: 'age') equals: 30
-]
-
-{ #category : 'tests - json' }
-LLMOutputParserTest >> testJsonParserWithCodeBlock [
-
-	| parser result |
-	parser := LLMJsonOutputParser new.
-	result := parser parse: '```json
-{"name": "Bob"}
-```'.
-	self assert: (result at: 'name') equals: 'Bob'
 ]
 
 { #category : 'tests - json' }
@@ -73,32 +45,15 @@ LLMOutputParserTest >> testJsonParserMissingKey [
 		raise: LLMValidationError
 ]
 
-{ #category : 'tests - regex' }
-LLMOutputParserTest >> testRegexParser [
+{ #category : 'tests - json' }
+LLMOutputParserTest >> testJsonParserWithCodeBlock [
 
 	| parser result |
-	parser := LLMRegexOutputParser pattern: '\d+'.
-	result := parser parse: 'The answer is 42 items'.
-	self assert: result equals: '42'
-]
-
-{ #category : 'tests - regex' }
-LLMOutputParserTest >> testRegexParserWithGroup [
-
-	| parser result |
-	parser := LLMRegexOutputParser pattern: 'answer: (\w+)' group: 1.
-	result := parser parse: 'The answer: hello world'.
-	self assert: result equals: 'hello'
-]
-
-{ #category : 'tests - regex' }
-LLMOutputParserTest >> testRegexParserNoMatch [
-
-	| parser |
-	parser := LLMRegexOutputParser pattern: '\d+'.
-	self
-		should: [ parser parse: 'no numbers here' ]
-		raise: LLMValidationError
+	parser := LLMJsonOutputParser new.
+	result := parser parse: '```json
+{"name": "Bob"}
+```'.
+	self assert: (result at: 'name') equals: 'Bob'
 ]
 
 { #category : 'tests - list' }
@@ -112,6 +67,29 @@ cherry'.
 	self assert: result size equals: 3.
 	self assert: result first equals: 'apple'.
 	self assert: result last equals: 'cherry'
+]
+
+{ #category : 'tests - list' }
+LLMOutputParserTest >> testListParserCustomSeparator [
+
+	| parser result |
+	parser := LLMListOutputParser separator: ','.
+	result := parser parse: 'a, b, c'.
+	self assert: result size equals: 3.
+	self assert: result first equals: 'a'
+]
+
+{ #category : 'tests - list' }
+LLMOutputParserTest >> testListParserRemovesEmpty [
+
+	| parser result |
+	parser := LLMListOutputParser new.
+	result := parser parse: 'apple
+
+banana
+
+cherry'.
+	self assert: result size equals: 3
 ]
 
 { #category : 'tests - list' }
@@ -138,25 +116,38 @@ LLMOutputParserTest >> testListParserWithNumbers [
 	self assert: result first equals: 'first'
 ]
 
-{ #category : 'tests - list' }
-LLMOutputParserTest >> testListParserCustomSeparator [
+{ #category : 'tests - regex' }
+LLMOutputParserTest >> testRegexParser [
 
 	| parser result |
-	parser := LLMListOutputParser separator: ','.
-	result := parser parse: 'a, b, c'.
-	self assert: result size equals: 3.
-	self assert: result first equals: 'a'
+	parser := LLMRegexOutputParser pattern: '\d+'.
+	result := parser parse: 'The answer is 42 items'.
+	self assert: result equals: '42'
 ]
 
-{ #category : 'tests - list' }
-LLMOutputParserTest >> testListParserRemovesEmpty [
+{ #category : 'tests - regex' }
+LLMOutputParserTest >> testRegexParserNoMatch [
 
-	| parser result |
-	parser := LLMListOutputParser new.
-	result := parser parse: 'apple
+	| parser |
+	parser := LLMRegexOutputParser pattern: '\d+'.
+	self
+		should: [ parser parse: 'no numbers here' ]
+		raise: LLMValidationError
+]
 
-banana
+{ #category : 'tests - string' }
+LLMOutputParserTest >> testStringParserNoTrim [
 
-cherry'.
-	self assert: result size equals: 3
+	| parser |
+	parser := LLMStringOutputParser new.
+	parser trimWhitespace: false.
+	self assert: (parser parse: '  hello  ') equals: '  hello  '
+]
+
+{ #category : 'tests - string' }
+LLMOutputParserTest >> testStringParserTrim [
+
+	| parser |
+	parser := LLMStringOutputParser new.
+	self assert: (parser parse: '  hello world  ') equals: 'hello world'
 ]

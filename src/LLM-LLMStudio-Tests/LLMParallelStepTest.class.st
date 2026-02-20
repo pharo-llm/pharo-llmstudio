@@ -23,16 +23,6 @@ LLMParallelStepTest >> testBasicParallel [
 ]
 
 { #category : 'tests' }
-LLMParallelStepTest >> testBranchesFromDictionary [
-
-	| step |
-	step := LLMParallelStep branches: {
-			        (#a -> (LLMBlockStep block: [ :ctx | ctx output: 1. ctx ])).
-			        (#b -> (LLMBlockStep block: [ :ctx | ctx output: 2. ctx ])) } asDictionary.
-	self assert: step branches size equals: 2
-]
-
-{ #category : 'tests' }
 LLMParallelStepTest >> testBranchIsolation [
 
 	| step result |
@@ -47,6 +37,16 @@ LLMParallelStepTest >> testBranchIsolation [
 	result := step runWith: Dictionary new.
 	"Branches should get independent copies of the context"
 	self assert: (result output at: #second) equals: 'not modified'
+]
+
+{ #category : 'tests' }
+LLMParallelStepTest >> testBranchesFromDictionary [
+
+	| step |
+	step := LLMParallelStep branches: {
+			        (#a -> (LLMBlockStep block: [ :ctx | ctx output: 1. ctx ])).
+			        (#b -> (LLMBlockStep block: [ :ctx | ctx output: 2. ctx ])) } asDictionary.
+	self assert: step branches size equals: 2
 ]
 
 { #category : 'tests' }

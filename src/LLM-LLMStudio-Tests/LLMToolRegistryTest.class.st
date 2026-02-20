@@ -25,6 +25,31 @@ LLMToolRegistryTest >> testAddAndRetrieveTools [
 ]
 
 { #category : 'tests' }
+LLMToolRegistryTest >> testAsFunctionSchemas [
+
+	| registry schemas |
+	registry := LLMToolRegistry new.
+	registry addTool: (LLMTool
+			 name: 'tool1'
+			 description: 'First'
+			 block: [ :x | x ]).
+	schemas := registry asFunctionSchemas.
+	self assert: schemas size equals: 1.
+	self assert: (schemas first at: 'type') equals: 'function'
+]
+
+{ #category : 'tests' }
+LLMToolRegistryTest >> testExecuteNonExistentTool [
+
+	| registry |
+	registry := LLMToolRegistry new.
+	self
+		should: [
+			registry executeTool: 'nonexistent' withInput: Dictionary new ]
+		raise: LLMValidationError
+]
+
+{ #category : 'tests' }
 LLMToolRegistryTest >> testExecuteTool [
 
 	| registry result |
@@ -38,17 +63,6 @@ LLMToolRegistryTest >> testExecuteTool [
 		          withInput: { ('n' -> 5) } asDictionary.
 	self assert: result isSuccess.
 	self assert: result output equals: 10
-]
-
-{ #category : 'tests' }
-LLMToolRegistryTest >> testExecuteNonExistentTool [
-
-	| registry |
-	registry := LLMToolRegistry new.
-	self
-		should: [
-			registry executeTool: 'nonexistent' withInput: Dictionary new ]
-		raise: LLMValidationError
 ]
 
 { #category : 'tests' }
@@ -79,18 +93,4 @@ LLMToolRegistryTest >> testToolNames [
 			 description: 'B'
 			 block: [ :x | x ]).
 	self assert: registry toolNames asSet equals: #( 'alpha' 'beta' ) asSet
-]
-
-{ #category : 'tests' }
-LLMToolRegistryTest >> testAsFunctionSchemas [
-
-	| registry schemas |
-	registry := LLMToolRegistry new.
-	registry addTool: (LLMTool
-			 name: 'tool1'
-			 description: 'First'
-			 block: [ :x | x ]).
-	schemas := registry asFunctionSchemas.
-	self assert: schemas size equals: 1.
-	self assert: (schemas first at: 'type') equals: 'function'
 ]

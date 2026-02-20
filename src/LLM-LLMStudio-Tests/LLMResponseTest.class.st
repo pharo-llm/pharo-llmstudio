@@ -16,6 +16,40 @@ LLMResponseTest >> testCreateWithContent [
 ]
 
 { #category : 'tests' }
+LLMResponseTest >> testDefaultTokens [
+
+	| response |
+	response := LLMResponse new.
+	self assert: response inputTokens equals: 0.
+	self assert: response outputTokens equals: 0.
+	self assert: response totalTokens equals: 0
+]
+
+{ #category : 'tests' }
+LLMResponseTest >> testFromAnthropicDictionary [
+
+	| dict response |
+	dict := Dictionary new.
+	dict at: 'content' put: {
+			(Dictionary new
+				 at: 'type' put: 'text';
+				 at: 'text' put: 'Anthropic response';
+				 yourself) }.
+	dict at: 'role' put: 'assistant'.
+	dict at: 'stop_reason' put: 'end_turn'.
+	dict at: 'model' put: 'claude-3'.
+	dict at: 'usage' put: (Dictionary new
+			 at: 'input_tokens' put: 15;
+			 at: 'output_tokens' put: 25;
+			 yourself).
+	response := LLMResponse fromDictionary: dict.
+	self assert: response content equals: 'Anthropic response'.
+	self assert: response role equals: 'assistant'.
+	self assert: response inputTokens equals: 15.
+	self assert: response outputTokens equals: 25
+]
+
+{ #category : 'tests' }
 LLMResponseTest >> testFromOpenAIDictionary [
 
 	| dict response |
@@ -45,30 +79,6 @@ LLMResponseTest >> testFromOpenAIDictionary [
 ]
 
 { #category : 'tests' }
-LLMResponseTest >> testFromAnthropicDictionary [
-
-	| dict response |
-	dict := Dictionary new.
-	dict at: 'content' put: {
-			(Dictionary new
-				 at: 'type' put: 'text';
-				 at: 'text' put: 'Anthropic response';
-				 yourself) }.
-	dict at: 'role' put: 'assistant'.
-	dict at: 'stop_reason' put: 'end_turn'.
-	dict at: 'model' put: 'claude-3'.
-	dict at: 'usage' put: (Dictionary new
-			 at: 'input_tokens' put: 15;
-			 at: 'output_tokens' put: 25;
-			 yourself).
-	response := LLMResponse fromDictionary: dict.
-	self assert: response content equals: 'Anthropic response'.
-	self assert: response role equals: 'assistant'.
-	self assert: response inputTokens equals: 15.
-	self assert: response outputTokens equals: 25
-]
-
-{ #category : 'tests' }
 LLMResponseTest >> testToolCalls [
 
 	| response |
@@ -79,14 +89,4 @@ LLMResponseTest >> testToolCalls [
 				 at: 'name' put: 'search';
 				 yourself) }.
 	self assert: response hasToolCalls
-]
-
-{ #category : 'tests' }
-LLMResponseTest >> testDefaultTokens [
-
-	| response |
-	response := LLMResponse new.
-	self assert: response inputTokens equals: 0.
-	self assert: response outputTokens equals: 0.
-	self assert: response totalTokens equals: 0
 ]

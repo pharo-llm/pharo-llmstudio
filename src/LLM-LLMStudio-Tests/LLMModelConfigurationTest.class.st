@@ -7,33 +7,6 @@ Class {
 }
 
 { #category : 'tests' }
-LLMModelConfigurationTest >> testDefaultValues [
-
-	| config |
-	config := LLMModelConfiguration new.
-	self assert: config temperature equals: 0.7.
-	self assert: config maxTokens equals: 1024
-]
-
-{ #category : 'tests' }
-LLMModelConfigurationTest >> testCreativePreset [
-
-	| config |
-	config := LLMModelConfiguration creative.
-	self assert: config temperature equals: 0.9.
-	self assert: config topP equals: 0.95
-]
-
-{ #category : 'tests' }
-LLMModelConfigurationTest >> testPrecisePreset [
-
-	| config |
-	config := LLMModelConfiguration precise.
-	self assert: config temperature equals: 0.1.
-	self assert: config topP equals: 0.1
-]
-
-{ #category : 'tests' }
 LLMModelConfigurationTest >> testAsDictionary [
 
 	| config dict |
@@ -46,13 +19,21 @@ LLMModelConfigurationTest >> testAsDictionary [
 ]
 
 { #category : 'tests' }
-LLMModelConfigurationTest >> testStopSequences [
+LLMModelConfigurationTest >> testCreativePreset [
 
-	| config dict |
+	| config |
+	config := LLMModelConfiguration creative.
+	self assert: config temperature equals: 0.9.
+	self assert: config topP equals: 0.95
+]
+
+{ #category : 'tests' }
+LLMModelConfigurationTest >> testDefaultValues [
+
+	| config |
 	config := LLMModelConfiguration new.
-	config stopSequences: #( '###' '---' ).
-	dict := config asDictionary.
-	self assert: (dict at: 'stop') equals: #( '###' '---' )
+	self assert: config temperature equals: 0.7.
+	self assert: config maxTokens equals: 1024
 ]
 
 { #category : 'tests' }
@@ -79,6 +60,15 @@ LLMModelConfigurationTest >> testNilValuesNotIncluded [
 ]
 
 { #category : 'tests' }
+LLMModelConfigurationTest >> testPrecisePreset [
+
+	| config |
+	config := LLMModelConfiguration precise.
+	self assert: config temperature equals: 0.1.
+	self assert: config topP equals: 0.1
+]
+
+{ #category : 'tests' }
 LLMModelConfigurationTest >> testSeed [
 
 	| config dict |
@@ -86,4 +76,14 @@ LLMModelConfigurationTest >> testSeed [
 	config seed: 42.
 	dict := config asDictionary.
 	self assert: (dict at: 'seed') equals: 42
+]
+
+{ #category : 'tests' }
+LLMModelConfigurationTest >> testStopSequences [
+
+	| config dict |
+	config := LLMModelConfiguration new.
+	config stopSequences: #( '###' '---' ).
+	dict := config asDictionary.
+	self assert: (dict at: 'stop') equals: #( '###' '---' )
 ]

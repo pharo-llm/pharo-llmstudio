@@ -18,16 +18,19 @@ LLMPipelineTest >> testEmptyPipeline [
 ]
 
 { #category : 'tests' }
-LLMPipelineTest >> testSingleStep [
+LLMPipelineTest >> testHistoryRecording [
 
 	| pipeline result |
 	pipeline := LLMPipeline new
-		            addStep: (LLMBlockStep block: [ :ctx |
-					             ctx output: ((ctx output ifNil: [ '' ]) , ' processed').
+		            addStep: (LLMBlockStep named: 'first' block: [ :ctx |
+					             ctx output: 'one'.
+					             ctx ]);
+		            addStep: (LLMBlockStep named: 'second' block: [ :ctx |
+					             ctx output: 'two'.
 					             ctx ]);
 		            yourself.
 	result := pipeline runWith: Dictionary new.
-	self assert: result output equals: ' processed'
+	self assert: result history size equals: 2
 ]
 
 { #category : 'tests' }
@@ -50,6 +53,28 @@ LLMPipelineTest >> testMultipleSteps [
 ]
 
 { #category : 'tests' }
+LLMPipelineTest >> testNestedPipelines [
+
+	| innerPipeline outerPipeline result |
+	innerPipeline := LLMPipeline new
+		                 addStep: (LLMBlockStep block: [ :ctx |
+					                  ctx output: 'inner'.
+					                  ctx ]);
+		                 yourself.
+	outerPipeline := LLMPipeline new
+		                 addStep: (LLMBlockStep block: [ :ctx |
+					                  ctx output: 'before-'.
+					                  ctx ]);
+		                 addStep: innerPipeline;
+		                 addStep: (LLMBlockStep block: [ :ctx |
+					                  ctx output: ctx output , '-after'.
+					                  ctx ]);
+		                 yourself.
+	result := outerPipeline runWith: Dictionary new.
+	self assert: result output equals: 'inner-after'
+]
+
+{ #category : 'tests' }
 LLMPipelineTest >> testPipelineWithVariables [
 
 	| pipeline result |
@@ -65,6 +90,19 @@ LLMPipelineTest >> testPipelineWithVariables [
 ]
 
 { #category : 'tests' }
+LLMPipelineTest >> testSingleStep [
+
+	| pipeline result |
+	pipeline := LLMPipeline new
+		            addStep: (LLMBlockStep block: [ :ctx |
+					             ctx output: ((ctx output ifNil: [ '' ]) , ' processed').
+					             ctx ]);
+		            yourself.
+	result := pipeline runWith: Dictionary new.
+	self assert: result output equals: ' processed'
+]
+
+{ #category : 'tests' }
 LLMPipelineTest >> testStepCount [
 
 	| pipeline |
@@ -73,22 +111,6 @@ LLMPipelineTest >> testStepCount [
 		            addStep: (LLMBlockStep block: [ :ctx | ctx ]);
 		            yourself.
 	self assert: pipeline stepCount equals: 2
-]
-
-{ #category : 'tests' }
-LLMPipelineTest >> testHistoryRecording [
-
-	| pipeline result |
-	pipeline := LLMPipeline new
-		            addStep: (LLMBlockStep named: 'first' block: [ :ctx |
-					             ctx output: 'one'.
-					             ctx ]);
-		            addStep: (LLMBlockStep named: 'second' block: [ :ctx |
-					             ctx output: 'two'.
-					             ctx ]);
-		            yourself.
-	result := pipeline runWith: Dictionary new.
-	self assert: result history size equals: 2
 ]
 
 { #category : 'tests' }
@@ -117,26 +139,4 @@ LLMPipelineTest >> testWithStepsCreation [
 			            (LLMBlockStep block: [ :ctx | ctx ]).
 			            (LLMBlockStep block: [ :ctx | ctx ]) }.
 	self assert: pipeline stepCount equals: 2
-]
-
-{ #category : 'tests' }
-LLMPipelineTest >> testNestedPipelines [
-
-	| innerPipeline outerPipeline result |
-	innerPipeline := LLMPipeline new
-		                 addStep: (LLMBlockStep block: [ :ctx |
-					                  ctx output: 'inner'.
-					                  ctx ]);
-		                 yourself.
-	outerPipeline := LLMPipeline new
-		                 addStep: (LLMBlockStep block: [ :ctx |
-					                  ctx output: 'before-'.
-					                  ctx ]);
-		                 addStep: innerPipeline;
-		                 addStep: (LLMBlockStep block: [ :ctx |
-					                  ctx output: ctx output , '-after'.
-					                  ctx ]);
-		                 yourself.
-	result := outerPipeline runWith: Dictionary new.
-	self assert: result output equals: 'inner-after'
 ]

@@ -7,6 +7,31 @@ Class {
 }
 
 { #category : 'tests' }
+LLMToolTest >> testToolAsFunctionSchema [
+
+	| tool schema |
+	tool := LLMTool
+		        name: 'search'
+		        description: 'Search the web'
+		        block: [ :input | input ].
+	tool parameters: (Dictionary new
+			 at: 'type' put: 'object';
+			 at: 'properties'
+			 put: (Dictionary new
+					  at: 'query'
+					  put: (Dictionary new
+							   at: 'type' put: 'string';
+							   yourself);
+					  yourself);
+			 yourself).
+	schema := tool asFunctionSchema.
+	self assert: (schema at: 'type') equals: 'function'.
+	self
+		assert: ((schema at: 'function') at: 'name')
+		equals: 'search'
+]
+
+{ #category : 'tests' }
 LLMToolTest >> testToolCreation [
 
 	| tool |
@@ -45,31 +70,6 @@ LLMToolTest >> testToolExecutionError [
 	result := tool execute: Dictionary new.
 	self deny: result isSuccess.
 	self assert: result error isNotNil
-]
-
-{ #category : 'tests' }
-LLMToolTest >> testToolAsFunctionSchema [
-
-	| tool schema |
-	tool := LLMTool
-		        name: 'search'
-		        description: 'Search the web'
-		        block: [ :input | input ].
-	tool parameters: (Dictionary new
-			 at: 'type' put: 'object';
-			 at: 'properties'
-			 put: (Dictionary new
-					  at: 'query'
-					  put: (Dictionary new
-							   at: 'type' put: 'string';
-							   yourself);
-					  yourself);
-			 yourself).
-	schema := tool asFunctionSchema.
-	self assert: (schema at: 'type') equals: 'function'.
-	self
-		assert: ((schema at: 'function') at: 'name')
-		equals: 'search'
 ]
 
 { #category : 'tests' }

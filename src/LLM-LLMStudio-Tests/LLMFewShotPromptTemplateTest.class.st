@@ -25,24 +25,6 @@ Output: {output}'.
 ]
 
 { #category : 'tests' }
-LLMFewShotPromptTemplateTest >> testWithPrefixAndSuffix [
-
-	| template result |
-	template := LLMFewShotPromptTemplate new.
-	template prefix: 'Translate English to Spanish:'.
-	template suffix: 'Input: {input}
-Output:'.
-	template exampleTemplate: 'Input: {input}
-Output: {output}'.
-	template addExample: {
-			(#input -> 'hello').
-			(#output -> 'hola') } asDictionary.
-	result := template format: { (#input -> 'goodbye') } asDictionary.
-	self assert: (result includesSubstring: 'Translate English to Spanish:').
-	self assert: (result includesSubstring: 'Input: goodbye')
-]
-
-{ #category : 'tests' }
 LLMFewShotPromptTemplateTest >> testCustomSeparator [
 
 	| template result |
@@ -65,4 +47,22 @@ LLMFewShotPromptTemplateTest >> testExampleCount [
 	template addExample: { (#x -> '2') } asDictionary.
 	template addExample: { (#x -> '3') } asDictionary.
 	self assert: template examples size equals: 3
+]
+
+{ #category : 'tests' }
+LLMFewShotPromptTemplateTest >> testWithPrefixAndSuffix [
+
+	| template result |
+	template := LLMFewShotPromptTemplate new.
+	template prefix: 'Translate English to Spanish:'.
+	template suffix: 'Input: {input}
+Output:'.
+	template exampleTemplate: 'Input: {input}
+Output: {output}'.
+	template addExample: {
+			(#input -> 'hello').
+			(#output -> 'hola') } asDictionary.
+	result := template format: { (#input -> 'goodbye') } asDictionary.
+	self assert: (result includesSubstring: 'Translate English to Spanish:').
+	self assert: (result includesSubstring: 'Input: goodbye')
 ]

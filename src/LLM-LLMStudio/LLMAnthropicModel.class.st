@@ -30,14 +30,14 @@ LLMAnthropicModel class >> claude3Sonnet [
 { #category : 'api' }
 LLMAnthropicModel >> buildRequestBody: messages [
 
-	| body normalizedMessages |
+	| body normalizedMessages systemMessages chatMessages |
 	body := Dictionary new.
 	body at: 'model' put: modelId.
 	body at: 'max_tokens' put: configuration maxTokens.
 	normalizedMessages := self normalizeMessages: messages.
 
 	"Extract system messages into top-level system parameter"
-	| systemMessages chatMessages |
+
 	systemMessages := normalizedMessages select: [ :m |
 		                  (m at: 'role') = 'system' ].
 	chatMessages := normalizedMessages reject: [ :m |

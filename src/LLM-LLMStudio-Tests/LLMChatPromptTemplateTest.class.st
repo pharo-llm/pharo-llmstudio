@@ -7,19 +7,16 @@ Class {
 }
 
 { #category : 'tests' }
-LLMChatPromptTemplateTest >> testSimpleChatPrompt [
+LLMChatPromptTemplateTest >> testFormatContext [
 
-	| template messages |
+	| template ctx messages |
 	template := LLMChatPromptTemplate new
-		            addSystemMessage: 'You are a helpful assistant.';
-		            addUserMessage: 'Hello {name}!';
+		            addUserMessage: 'Hello {name}';
 		            yourself.
-	messages := template format: { (#name -> 'World') } asDictionary.
-	self assert: messages size equals: 2.
-	self assert: messages first isSystem.
-	self assert: messages first content equals: 'You are a helpful assistant.'.
-	self assert: messages second isUser.
-	self assert: messages second content equals: 'Hello World!'
+	ctx := LLMPipelineContext withVariables:
+		       { (#name -> 'Bob') } asDictionary.
+	messages := template formatContext: ctx.
+	self assert: messages first content equals: 'Hello Bob'
 ]
 
 { #category : 'tests' }
@@ -69,14 +66,17 @@ LLMChatPromptTemplateTest >> testMultiTurnConversation [
 ]
 
 { #category : 'tests' }
-LLMChatPromptTemplateTest >> testFormatContext [
+LLMChatPromptTemplateTest >> testSimpleChatPrompt [
 
-	| template ctx messages |
+	| template messages |
 	template := LLMChatPromptTemplate new
-		            addUserMessage: 'Hello {name}';
+		            addSystemMessage: 'You are a helpful assistant.';
+		            addUserMessage: 'Hello {name}!';
 		            yourself.
-	ctx := LLMPipelineContext withVariables:
-		       { (#name -> 'Bob') } asDictionary.
-	messages := template formatContext: ctx.
-	self assert: messages first content equals: 'Hello Bob'
+	messages := template format: { (#name -> 'World') } asDictionary.
+	self assert: messages size equals: 2.
+	self assert: messages first isSystem.
+	self assert: messages first content equals: 'You are a helpful assistant.'.
+	self assert: messages second isUser.
+	self assert: messages second content equals: 'Hello World!'
 ]

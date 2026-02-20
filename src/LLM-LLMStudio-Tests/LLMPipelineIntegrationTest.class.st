@@ -7,37 +7,6 @@ Class {
 }
 
 { #category : 'tests' }
-LLMPipelineIntegrationTest >> testPromptToModelToParser [
-	"Full pipeline: prompt template -> mock model -> string parser"
-
-	| pipeline result |
-	pipeline := LLMPipeline new
-		            addStep: (LLMPromptStep template: 'Translate to {language}: {text}');
-		            addStep: (LLMModelStep model: (LLMMockModel respondingWith: 'Bonjour le monde'));
-		            addStep: (LLMParserStep parser: LLMStringOutputParser new);
-		            yourself.
-	result := pipeline runWith: {
-			          (#language -> 'French').
-			          (#text -> 'Hello world') } asDictionary.
-	self assert: result output equals: 'Bonjour le monde'
-]
-
-{ #category : 'tests' }
-LLMPipelineIntegrationTest >> testPromptToModelToJsonParser [
-	"Full pipeline with JSON parsing"
-
-	| pipeline result |
-	pipeline := LLMPipeline new
-		            addStep: (LLMPromptStep template: 'Extract entities from: {text}');
-		            addStep: (LLMModelStep model:
-						         (LLMMockModel respondingWith: '{"entities": ["Paris", "France"]}'));
-		            addStep: (LLMParserStep parser: (LLMJsonOutputParser extractKey: 'entities'));
-		            yourself.
-	result := pipeline runWith: { (#text -> 'Paris is the capital of France') } asDictionary.
-	self assert: result output equals: #( 'Paris' 'France' )
-]
-
-{ #category : 'tests' }
 LLMPipelineIntegrationTest >> testChatPromptPipeline [
 	"Pipeline with chat prompt template"
 
@@ -93,51 +62,22 @@ LLMPipelineIntegrationTest >> testConditionalPipeline [
 ]
 
 { #category : 'tests' }
-LLMPipelineIntegrationTest >> testPipelineChaining [
-	"Chain two pipelines using then:"
+LLMPipelineIntegrationTest >> testMapWithModelPipeline [
+	"Map a pipeline over multiple items"
 
-	| translate summarize combined result |
-	translate := LLMPipeline new
-		             addStep:
-			             (LLMPromptStep template: 'Translate: {text}');
-		             addStep: (LLMModelStep model:
-					              (LLMMockModel respondingWith: 'Texte traduit'));
-		             addStep:
-			             (LLMParserStep parser: LLMStringOutputParser new);
-		             yourself.
-	summarize := LLMBlockStep block: [ :ctx |
-		             ctx
-			             output: 'Summary: ' , ctx output asString;
-			             yourself ].
-	combined := translate then: summarize.
-	result := combined runWith: {
-			          (#text -> 'Hello world') } asDictionary.
-	self assert: result output equals: 'Summary: Texte traduit'
-]
-
-{ #category : 'tests' }
-LLMPipelineIntegrationTest >> testParallelBranchesMerging [
-	"Parallel execution with result merging"
-
-	| pipeline result |
-	pipeline := LLMPipeline new
-		            addStep: (LLMParallelStep new
-					             addBranch: #upper step: (LLMBlockStep block: [ :ctx |
-								              ctx output: 'HELLO'.
-								              ctx ]);
-					             addBranch: #lower step: (LLMBlockStep block: [ :ctx |
-								              ctx output: 'hello'.
-								              ctx ]);
-					             yourself);
-		            addStep: (LLMBlockStep block: [ :ctx |
-					             | results |
-					             results := ctx output.
-					             ctx output:
-						             (results at: #upper) , ' - ' , (results at: #lower).
-					             ctx ]);
-		            yourself.
-	result := pipeline runWith: Dictionary new.
-	self assert: result output equals: 'HELLO - hello'
+	| itemPipeline mapStep result |
+	itemPipeline := LLMPipeline new
+		                addStep: (LLMBlockStep block: [ :ctx |
+					                 ctx at: #prompt put: 'Process: ' , ctx output asString.
+					                 ctx ]);
+		                addStep: (LLMModelStep model:
+						                 (LLMMockModel respondingWith: 'processed'));
+		                yourself.
+	mapStep := LLMMapStep step: itemPipeline.
+	result := mapStep runWith:
+		          { (#items -> #( 'item1' 'item2' 'item3' )) } asDictionary.
+	self assert: result output size equals: 3.
+	self assert: (result output allSatisfy: [ :r | r = 'processed' ])
 ]
 
 { #category : 'tests' }
@@ -171,25 +111,6 @@ LLMPipelineIntegrationTest >> testMemoryWithMockModel [
 ]
 
 { #category : 'tests' }
-LLMPipelineIntegrationTest >> testMapWithModelPipeline [
-	"Map a pipeline over multiple items"
-
-	| itemPipeline mapStep result |
-	itemPipeline := LLMPipeline new
-		                addStep: (LLMBlockStep block: [ :ctx |
-					                 ctx at: #prompt put: 'Process: ' , ctx output asString.
-					                 ctx ]);
-		                addStep: (LLMModelStep model:
-						                 (LLMMockModel respondingWith: 'processed'));
-		                yourself.
-	mapStep := LLMMapStep step: itemPipeline.
-	result := mapStep runWith:
-		          { (#items -> #( 'item1' 'item2' 'item3' )) } asDictionary.
-	self assert: result output size equals: 3.
-	self assert: (result output allSatisfy: [ :r | r = 'processed' ])
-]
-
-{ #category : 'tests' }
 LLMPipelineIntegrationTest >> testMockModelCapturesRequests [
 
 	| mockModel pipeline |
@@ -201,4 +122,83 @@ LLMPipelineIntegrationTest >> testMockModelCapturesRequests [
 	pipeline runWith: { (#name -> 'World') } asDictionary.
 	self assert: mockModel callCount equals: 1.
 	self assert: mockModel capturedRequests size equals: 1
+]
+
+{ #category : 'tests' }
+LLMPipelineIntegrationTest >> testParallelBranchesMerging [
+	"Parallel execution with result merging"
+
+	| pipeline result |
+	pipeline := LLMPipeline new
+		            addStep: (LLMParallelStep new
+					             addBranch: #upper step: (LLMBlockStep block: [ :ctx |
+								              ctx output: 'HELLO'.
+								              ctx ]);
+					             addBranch: #lower step: (LLMBlockStep block: [ :ctx |
+								              ctx output: 'hello'.
+								              ctx ]);
+					             yourself);
+		            addStep: (LLMBlockStep block: [ :ctx |
+					             | results |
+					             results := ctx output.
+					             ctx output:
+						             (results at: #upper) , ' - ' , (results at: #lower).
+					             ctx ]);
+		            yourself.
+	result := pipeline runWith: Dictionary new.
+	self assert: result output equals: 'HELLO - hello'
+]
+
+{ #category : 'tests' }
+LLMPipelineIntegrationTest >> testPipelineChaining [
+	"Chain two pipelines using then:"
+
+	| translate summarize combined result |
+	translate := LLMPipeline new
+		             addStep:
+			             (LLMPromptStep template: 'Translate: {text}');
+		             addStep: (LLMModelStep model:
+					              (LLMMockModel respondingWith: 'Texte traduit'));
+		             addStep:
+			             (LLMParserStep parser: LLMStringOutputParser new);
+		             yourself.
+	summarize := LLMBlockStep block: [ :ctx |
+		             ctx
+			             output: 'Summary: ' , ctx output asString;
+			             yourself ].
+	combined := translate then: summarize.
+	result := combined runWith: {
+			          (#text -> 'Hello world') } asDictionary.
+	self assert: result output equals: 'Summary: Texte traduit'
+]
+
+{ #category : 'tests' }
+LLMPipelineIntegrationTest >> testPromptToModelToJsonParser [
+	"Full pipeline with JSON parsing"
+
+	| pipeline result |
+	pipeline := LLMPipeline new
+		            addStep: (LLMPromptStep template: 'Extract entities from: {text}');
+		            addStep: (LLMModelStep model:
+						         (LLMMockModel respondingWith: '{"entities": ["Paris", "France"]}'));
+		            addStep: (LLMParserStep parser: (LLMJsonOutputParser extractKey: 'entities'));
+		            yourself.
+	result := pipeline runWith: { (#text -> 'Paris is the capital of France') } asDictionary.
+	self assert: result output equals: #( 'Paris' 'France' )
+]
+
+{ #category : 'tests' }
+LLMPipelineIntegrationTest >> testPromptToModelToParser [
+	"Full pipeline: prompt template -> mock model -> string parser"
+
+	| pipeline result |
+	pipeline := LLMPipeline new
+		            addStep: (LLMPromptStep template: 'Translate to {language}: {text}');
+		            addStep: (LLMModelStep model: (LLMMockModel respondingWith: 'Bonjour le monde'));
+		            addStep: (LLMParserStep parser: LLMStringOutputParser new);
+		            yourself.
+	result := pipeline runWith: {
+			          (#language -> 'French').
+			          (#text -> 'Hello world') } asDictionary.
+	self assert: result output equals: 'Bonjour le monde'
 ]

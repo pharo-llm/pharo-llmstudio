@@ -18,15 +18,6 @@ LLMBlockStepTest >> testBasicBlock [
 ]
 
 { #category : 'tests' }
-LLMBlockStepTest >> testBlockReturningValue [
-
-	| step result |
-	step := LLMBlockStep block: [ :ctx | 42 ].
-	result := step runWith: Dictionary new.
-	self assert: result output equals: 42
-]
-
-{ #category : 'tests' }
 LLMBlockStepTest >> testBlockAccessingVariables [
 
 	| step result |
@@ -50,6 +41,15 @@ LLMBlockStepTest >> testBlockModifyingContext [
 	result := step runWith: { (#text -> 'input') } asDictionary.
 	self assert: (result at: #processed).
 	self assert: (result at: #text) equals: 'input processed'
+]
+
+{ #category : 'tests' }
+LLMBlockStepTest >> testBlockReturningValue [
+
+	| step result |
+	step := LLMBlockStep block: [ :ctx | 42 ].
+	result := step runWith: Dictionary new.
+	self assert: result output equals: 42
 ]
 
 { #category : 'tests' }

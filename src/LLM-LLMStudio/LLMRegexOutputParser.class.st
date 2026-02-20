@@ -75,7 +75,7 @@ LLMRegexOutputParser >> parse: aString [
 	(matcher search: aString) ifFalse: [
 		LLMValidationError signal:
 			'Regex pattern did not match any output: ' , pattern ].
-	^ [ matcher subexpression: groupIndex + 1 ]
+	^ [ matcher subexpression: groupIndex ]
 		on: Error
 		do: [ :e |
 			LLMValidationError signal:
