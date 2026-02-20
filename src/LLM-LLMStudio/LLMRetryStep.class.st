@@ -14,18 +14,18 @@ Class {
 }
 
 { #category : 'instance creation' }
+LLMRetryStep class >> new [
+
+	^ super new initialize
+]
+
+{ #category : 'instance creation' }
 LLMRetryStep class >> step: aStep maxRetries: anInteger [
 
 	^ self new
 		  wrappedStep: aStep;
 		  maxRetries: anInteger;
 		  yourself
-]
-
-{ #category : 'instance creation' }
-LLMRetryStep class >> new [
-
-	^ super new initialize
 ]
 
 { #category : 'accessing' }
@@ -125,6 +125,15 @@ LLMRetryStep >> shouldRetry: anError attempt: attemptNumber [
 	^ retryOn anySatisfy: [ :exClass | anError isKindOf: exClass ]
 ]
 
+{ #category : 'validating' }
+LLMRetryStep >> validate [
+
+	wrappedStep ifNil: [
+		LLMValidationError signal:
+			'RetryStep requires a wrapped step' ].
+	^ true
+]
+
 { #category : 'accessing' }
 LLMRetryStep >> wrappedStep [
 
@@ -135,13 +144,4 @@ LLMRetryStep >> wrappedStep [
 LLMRetryStep >> wrappedStep: aStep [
 
 	wrappedStep := aStep
-]
-
-{ #category : 'validating' }
-LLMRetryStep >> validate [
-
-	wrappedStep ifNil: [
-		LLMValidationError signal:
-			'RetryStep requires a wrapped step' ].
-	^ true
 ]

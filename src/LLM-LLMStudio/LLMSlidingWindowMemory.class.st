@@ -11,17 +11,17 @@ Class {
 }
 
 { #category : 'instance creation' }
+LLMSlidingWindowMemory class >> new [
+
+	^ super new initialize
+]
+
+{ #category : 'instance creation' }
 LLMSlidingWindowMemory class >> windowSize: anInteger [
 
 	^ self new
 		  windowSize: anInteger;
 		  yourself
-]
-
-{ #category : 'instance creation' }
-LLMSlidingWindowMemory class >> new [
-
-	^ super new initialize
 ]
 
 { #category : 'initialization' }

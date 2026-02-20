@@ -14,18 +14,18 @@ Class {
 }
 
 { #category : 'instance creation' }
-LLMFewShotPromptTemplate class >> new [
-
-	^ super new initialize
-]
-
-{ #category : 'instance creation' }
 LLMFewShotPromptTemplate class >> exampleTemplate: aTemplate examples: aCollection [
 
 	^ self new
 		  exampleTemplate: aTemplate;
 		  examples: aCollection;
 		  yourself
+]
+
+{ #category : 'instance creation' }
+LLMFewShotPromptTemplate class >> new [
+
+	^ super new initialize
 ]
 
 { #category : 'building' }
@@ -70,10 +70,10 @@ LLMFewShotPromptTemplate >> format: aDictionary [
 		                     exampleTemplate format: example ].
 	parts := OrderedCollection new.
 	prefix ifNotNil: [ :p |
-		parts add: (LLMPromptTemplate template: p) format: aDictionary ].
+		parts add: ((LLMPromptTemplate template: p) format: aDictionary )].
 	parts addAll: formattedExamples.
 	suffix ifNotNil: [ :s |
-		parts add: (LLMPromptTemplate template: s) format: aDictionary ].
+		parts add: ((LLMPromptTemplate template: s) format: aDictionary) ].
 	^ separator join: parts
 ]
 

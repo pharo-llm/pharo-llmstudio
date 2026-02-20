@@ -36,6 +36,15 @@ LLMPipeline >> initialize [
 	steps := OrderedCollection new
 ]
 
+{ #category : 'printing' }
+LLMPipeline >> printOn: aStream [
+
+	aStream
+		nextPutAll: 'LLMPipeline(';
+		print: steps size;
+		nextPutAll: ' steps)'.
+]
+
 { #category : 'running' }
 LLMPipeline >> processContext: aContext [
 	"Execute all steps sequentially, passing context through each."
@@ -48,13 +57,20 @@ LLMPipeline >> processContext: aContext [
 	^ currentContext
 ]
 
-{ #category : 'printing' }
-LLMPipeline >> printOn: aStream [
+{ #category : 'running' }
+LLMPipeline >> runWith: aDictionary [
+	"Run the pipeline with the given variables dictionary."
 
-	aStream
-		nextPutAll: 'LLMPipeline(';
-		print: steps size;
-		nextPutAll: ' steps)'.
+	| context |
+	self validate.
+	context := LLMPipelineContext withVariables: aDictionary.
+	^ self processContext: context
+]
+
+{ #category : 'accessing' }
+LLMPipeline >> stepCount [
+
+	^ steps size
 ]
 
 { #category : 'accessing' }
@@ -69,12 +85,6 @@ LLMPipeline >> steps: aCollection [
 	steps := aCollection asOrderedCollection
 ]
 
-{ #category : 'accessing' }
-LLMPipeline >> stepCount [
-
-	^ steps size
-]
-
 { #category : 'composing' }
 LLMPipeline >> then: anotherStep [
 	"Add a step to this pipeline (unlike the superclass which creates a new pipeline)."
@@ -87,14 +97,4 @@ LLMPipeline >> validate [
 
 	steps do: [ :step | step validate ].
 	^ true
-]
-
-{ #category : 'running' }
-LLMPipeline >> runWith: aDictionary [
-	"Run the pipeline with the given variables dictionary."
-
-	| context |
-	self validate.
-	context := LLMPipelineContext withVariables: aDictionary.
-	^ self processContext: context
 ]

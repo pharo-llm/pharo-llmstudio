@@ -17,9 +17,12 @@ Class {
 }
 
 { #category : 'instance creation' }
-LLMModelConfiguration class >> new [
+LLMModelConfiguration class >> creative [
 
-	^ super new initialize
+	^ self new
+		  temperature: 0.9;
+		  topP: 0.95;
+		  yourself
 ]
 
 { #category : 'instance creation' }
@@ -29,12 +32,9 @@ LLMModelConfiguration class >> default [
 ]
 
 { #category : 'instance creation' }
-LLMModelConfiguration class >> creative [
+LLMModelConfiguration class >> new [
 
-	^ self new
-		  temperature: 0.9;
-		  topP: 0.95;
-		  yourself
+	^ super new initialize
 ]
 
 { #category : 'instance creation' }

@@ -11,6 +11,12 @@ Class {
 }
 
 { #category : 'instance creation' }
+LLMRegexOutputParser class >> new [
+
+	^ super new initialize
+]
+
+{ #category : 'instance creation' }
 LLMRegexOutputParser class >> pattern: aRegexString [
 
 	^ self new
@@ -25,12 +31,6 @@ LLMRegexOutputParser class >> pattern: aRegexString group: anIndex [
 		  pattern: aRegexString;
 		  groupIndex: anIndex;
 		  yourself
-]
-
-{ #category : 'instance creation' }
-LLMRegexOutputParser class >> new [
-
-	^ super new initialize
 ]
 
 { #category : 'accessing' }
@@ -52,17 +52,35 @@ LLMRegexOutputParser >> initialize [
 ]
 
 { #category : 'parsing' }
+LLMRegexOutputParser >> normalizedPattern [
+	"Convert common regex escapes into RxParser-compatible syntax."
+
+	^ pattern
+		copyReplaceAll: '\w' with: '[A-Za-z0-9_]';
+		copyReplaceAll: '\d' with: '[0-9]';
+		yourself
+]
+
+{ #category : 'parsing' }
 LLMRegexOutputParser >> parse: aString [
 
-	| regex |
-	regex := pattern asRegex.
-	(regex matchesIn: aString) ifEmpty: [
+		| matcher matches |
+	matcher := self normalizedPattern asRegex.
+	groupIndex > 0 ifFalse: [
+		matches := matcher matchesIn: aString.
+		matches ifEmpty: [
+			LLMValidationError signal:
+				'Regex pattern did not match any output: ' , pattern ].
+		^ matches first ].
+	(matcher search: aString) ifFalse: [
 		LLMValidationError signal:
 			'Regex pattern did not match any output: ' , pattern ].
-	regex search: aString.
-	^ groupIndex > 0
-		  ifTrue: [ regex subexpression: groupIndex + 1 ]
-		  ifFalse: [ regex match ]
+	^ [ matcher subexpression: groupIndex + 1 ]
+		on: Error
+		do: [ :e |
+			LLMValidationError signal:
+				'Regex group extraction failed: ' , e messageText ]
+
 ]
 
 { #category : 'accessing' }

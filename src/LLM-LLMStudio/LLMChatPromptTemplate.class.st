@@ -10,12 +10,6 @@ Class {
 }
 
 { #category : 'instance creation' }
-LLMChatPromptTemplate class >> new [
-
-	^ super new initialize
-]
-
-{ #category : 'instance creation' }
 LLMChatPromptTemplate class >> fromMessages: aCollection [
 	"Create from an array of associations: { #system -> 'template'. #user -> 'template' }"
 
@@ -24,6 +18,12 @@ LLMChatPromptTemplate class >> fromMessages: aCollection [
 	aCollection do: [ :assoc |
 		instance addMessageRole: assoc key asString template: assoc value ].
 	^ instance
+]
+
+{ #category : 'instance creation' }
+LLMChatPromptTemplate class >> new [
+
+	^ super new initialize
 ]
 
 { #category : 'building' }

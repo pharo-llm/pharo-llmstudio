@@ -12,18 +12,18 @@ Class {
 }
 
 { #category : 'instance creation' }
+LLMToolStep class >> new [
+
+	^ super new initialize
+]
+
+{ #category : 'instance creation' }
 LLMToolStep class >> registry: aRegistry model: aModel [
 
 	^ self new
 		  registry: aRegistry;
 		  model: aModel;
 		  yourself
-]
-
-{ #category : 'instance creation' }
-LLMToolStep class >> new [
-
-	^ super new initialize
 ]
 
 { #category : 'building' }

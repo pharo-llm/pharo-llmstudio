@@ -14,6 +14,12 @@ Class {
 }
 
 { #category : 'instance creation' }
+LLMLoggingStep class >> new [
+
+	^ super new initialize
+]
+
+{ #category : 'instance creation' }
 LLMLoggingStep class >> step: aStep [
 
 	^ self new
@@ -30,12 +36,6 @@ LLMLoggingStep class >> step: aStep logger: aBlock [
 		  yourself
 ]
 
-{ #category : 'instance creation' }
-LLMLoggingStep class >> new [
-
-	^ super new initialize
-]
-
 { #category : 'initialization' }
 LLMLoggingStep >> initialize [
 
@@ -43,6 +43,12 @@ LLMLoggingStep >> initialize [
 	logOutput := true.
 	logLevel := #info.
 	logger := [ :msg | Transcript show: msg; cr ]
+]
+
+{ #category : 'private' }
+LLMLoggingStep >> log: aMessage [
+
+	logger value: aMessage
 ]
 
 { #category : 'accessing' }
@@ -115,10 +121,13 @@ LLMLoggingStep >> processContext: aContext [
 	^ result
 ]
 
-{ #category : 'private' }
-LLMLoggingStep >> log: aMessage [
+{ #category : 'validating' }
+LLMLoggingStep >> validate [
 
-	logger value: aMessage
+	wrappedStep ifNil: [
+		LLMValidationError signal:
+			'LoggingStep requires a wrapped step' ].
+	^ true
 ]
 
 { #category : 'accessing' }
@@ -131,13 +140,4 @@ LLMLoggingStep >> wrappedStep [
 LLMLoggingStep >> wrappedStep: aStep [
 
 	wrappedStep := aStep
-]
-
-{ #category : 'validating' }
-LLMLoggingStep >> validate [
-
-	wrappedStep ifNil: [
-		LLMValidationError signal:
-			'LoggingStep requires a wrapped step' ].
-	^ true
 ]

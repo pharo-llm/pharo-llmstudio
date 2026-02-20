@@ -17,17 +17,6 @@ LLMPipelineStep class >> named: aString [
 		  yourself
 ]
 
-{ #category : 'composing' }
-LLMPipelineStep >> then: anotherStep [
-	"Chain this step with another step, creating a pipeline.
-	 Usage: (promptStep then: modelStep) then: parserStep"
-
-	^ LLMPipeline new
-		  addStep: self;
-		  addStep: anotherStep;
-		  yourself
-]
-
 { #category : 'accessing' }
 LLMPipelineStep >> name [
 
@@ -75,6 +64,17 @@ LLMPipelineStep >> runWithInput: anObject [
 	context output: anObject.
 	context at: #input put: anObject.
 	^ self processContext: context
+]
+
+{ #category : 'composing' }
+LLMPipelineStep >> then: anotherStep [
+	"Chain this step with another step, creating a pipeline.
+	 Usage: (promptStep then: modelStep) then: parserStep"
+
+	^ LLMPipeline new
+		  addStep: self;
+		  addStep: anotherStep;
+		  yourself
 ]
 
 { #category : 'validating' }

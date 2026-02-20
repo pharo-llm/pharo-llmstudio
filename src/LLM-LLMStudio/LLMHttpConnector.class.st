@@ -37,6 +37,26 @@ LLMHttpConnector >> baseUrl: aString [
 	baseUrl := aString
 ]
 
+{ #category : 'api' }
+LLMHttpConnector >> get: anEndpoint [
+	"Send a GET request and return the parsed JSON response."
+
+	| url client response |
+	url := baseUrl , anEndpoint.
+	client := ZnClient new
+		           url: url;
+		           timeout: timeoutSeconds;
+		           yourself.
+	headers keysAndValuesDo: [ :key :value |
+		client headerAt: key put: value ].
+	client get.
+	response := client response.
+	response isSuccess
+		ifFalse: [
+			LLMApiError statusCode: response code body: (response entity ifNotNil: [ :e | e string ] ifNil: [ '' ]) ].
+	^ NeoJSONReader fromString: client contents
+]
+
 { #category : 'accessing' }
 LLMHttpConnector >> headerAt: aKey put: aValue [
 
@@ -55,6 +75,16 @@ LLMHttpConnector >> initialize [
 	headers := Dictionary new.
 	timeoutSeconds := 120.
 	headers at: 'Content-Type' put: 'application/json'
+]
+
+{ #category : 'private' }
+LLMHttpConnector >> parseRetryAfter: aResponse [
+
+	| retryHeader |
+	retryHeader := aResponse headers
+		               at: 'Retry-After'
+		               ifAbsent: [ '60' ].
+	^ retryHeader asInteger
 ]
 
 { #category : 'api' }
@@ -79,36 +109,6 @@ LLMHttpConnector >> post: anEndpoint body: aDictionary [
 				ifTrue: [ LLMRateLimitError retryAfter: (self parseRetryAfter: response) ]
 				ifFalse: [ LLMApiError statusCode: response code body: (response entity ifNotNil: [ :e | e string ] ifNil: [ '' ]) ] ].
 	^ NeoJSONReader fromString: client contents
-]
-
-{ #category : 'api' }
-LLMHttpConnector >> get: anEndpoint [
-	"Send a GET request and return the parsed JSON response."
-
-	| url client response |
-	url := baseUrl , anEndpoint.
-	client := ZnClient new
-		           url: url;
-		           timeout: timeoutSeconds;
-		           yourself.
-	headers keysAndValuesDo: [ :key :value |
-		client headerAt: key put: value ].
-	client get.
-	response := client response.
-	response isSuccess
-		ifFalse: [
-			LLMApiError statusCode: response code body: (response entity ifNotNil: [ :e | e string ] ifNil: [ '' ]) ].
-	^ NeoJSONReader fromString: client contents
-]
-
-{ #category : 'private' }
-LLMHttpConnector >> parseRetryAfter: aResponse [
-
-	| retryHeader |
-	retryHeader := aResponse headers
-		               at: 'Retry-After'
-		               ifAbsent: [ '60' ].
-	^ retryHeader asInteger
 ]
 
 { #category : 'printing' }

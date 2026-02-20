@@ -12,6 +12,12 @@ Class {
 }
 
 { #category : 'instance creation' }
+LLMPromptTemplate class >> new [
+
+	^ super new initialize
+]
+
+{ #category : 'instance creation' }
 LLMPromptTemplate class >> template: aString [
 
 	^ self new
@@ -26,12 +32,6 @@ LLMPromptTemplate class >> template: aString variables: aCollection [
 		  template: aString;
 		  inputVariables: aCollection;
 		  yourself
-]
-
-{ #category : 'instance creation' }
-LLMPromptTemplate class >> new [
-
-	^ super new initialize
 ]
 
 { #category : 'formatting' }
@@ -93,18 +93,6 @@ LLMPromptTemplate >> parseVariables [
 	^ vars asArray
 ]
 
-{ #category : 'accessing' }
-LLMPromptTemplate >> partialVariables [
-
-	^ partialVariables
-]
-
-{ #category : 'accessing' }
-LLMPromptTemplate >> partialVariables: aDictionary [
-
-	partialVariables := aDictionary
-]
-
 { #category : 'formatting' }
 LLMPromptTemplate >> partial: aDictionary [
 	"Return a new template with some variables pre-filled."
@@ -115,6 +103,18 @@ LLMPromptTemplate >> partial: aDictionary [
 	aDictionary keysAndValuesDo: [ :k :v |
 		newTemplate partialVariables at: k put: v ].
 	^ newTemplate
+]
+
+{ #category : 'accessing' }
+LLMPromptTemplate >> partialVariables [
+
+	^ partialVariables
+]
+
+{ #category : 'accessing' }
+LLMPromptTemplate >> partialVariables: aDictionary [
+
+	partialVariables := aDictionary
 ]
 
 { #category : 'printing' }

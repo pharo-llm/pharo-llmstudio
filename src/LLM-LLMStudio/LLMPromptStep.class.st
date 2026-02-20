@@ -12,18 +12,18 @@ Class {
 }
 
 { #category : 'instance creation' }
-LLMPromptStep class >> template: aString [
-
-	^ self new
-		  promptTemplate: (LLMPromptTemplate template: aString);
-		  yourself
-]
-
-{ #category : 'instance creation' }
 LLMPromptStep class >> chatTemplate: aChatPromptTemplate [
 
 	^ self new
 		  chatPromptTemplate: aChatPromptTemplate;
+		  yourself
+]
+
+{ #category : 'instance creation' }
+LLMPromptStep class >> template: aString [
+
+	^ self new
+		  promptTemplate: (LLMPromptTemplate template: aString);
 		  yourself
 ]
 

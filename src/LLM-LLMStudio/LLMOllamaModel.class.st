@@ -11,6 +11,12 @@ Class {
 }
 
 { #category : 'instance creation' }
+LLMOllamaModel class >> codeLlama [
+
+	^ self modelId: 'codellama'
+]
+
+{ #category : 'instance creation' }
 LLMOllamaModel class >> llama3 [
 
 	^ self modelId: 'llama3'
@@ -20,12 +26,6 @@ LLMOllamaModel class >> llama3 [
 LLMOllamaModel class >> mistral [
 
 	^ self modelId: 'mistral'
-]
-
-{ #category : 'instance creation' }
-LLMOllamaModel class >> codeLlama [
-
-	^ self modelId: 'codellama'
 ]
 
 { #category : 'instance creation' }

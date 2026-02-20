@@ -13,6 +13,12 @@ Class {
 }
 
 { #category : 'instance creation' }
+LLMMapStep class >> new [
+
+	^ super new initialize
+]
+
+{ #category : 'instance creation' }
 LLMMapStep class >> step: aStep [
 
 	^ self new
@@ -27,12 +33,6 @@ LLMMapStep class >> step: aStep inputKey: aKey [
 		  wrappedStep: aStep;
 		  inputKey: aKey;
 		  yourself
-]
-
-{ #category : 'instance creation' }
-LLMMapStep class >> new [
-
-	^ super new initialize
 ]
 
 { #category : 'accessing' }
@@ -101,6 +101,14 @@ LLMMapStep >> processContext: aContext [
 	^ aContext
 ]
 
+{ #category : 'validating' }
+LLMMapStep >> validate [
+
+	wrappedStep ifNil: [
+		LLMValidationError signal: 'MapStep requires a wrapped step' ].
+	^ true
+]
+
 { #category : 'accessing' }
 LLMMapStep >> wrappedStep [
 
@@ -111,12 +119,4 @@ LLMMapStep >> wrappedStep [
 LLMMapStep >> wrappedStep: aStep [
 
 	wrappedStep := aStep
-]
-
-{ #category : 'validating' }
-LLMMapStep >> validate [
-
-	wrappedStep ifNil: [
-		LLMValidationError signal: 'MapStep requires a wrapped step' ].
-	^ true
 ]

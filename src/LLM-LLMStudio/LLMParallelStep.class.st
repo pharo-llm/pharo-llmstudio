@@ -10,12 +10,6 @@ Class {
 }
 
 { #category : 'instance creation' }
-LLMParallelStep class >> new [
-
-	^ super new initialize
-]
-
-{ #category : 'instance creation' }
 LLMParallelStep class >> branches: aDictionary [
 	"Create with named branches: { #translation -> translatePipeline. #summary -> summaryPipeline }"
 
@@ -24,6 +18,12 @@ LLMParallelStep class >> branches: aDictionary [
 	aDictionary associationsDo: [ :assoc |
 		instance addBranch: assoc key step: assoc value ].
 	^ instance
+]
+
+{ #category : 'instance creation' }
+LLMParallelStep class >> new [
+
+	^ super new initialize
 ]
 
 { #category : 'building' }
@@ -45,6 +45,15 @@ LLMParallelStep >> initialize [
 	branches := OrderedDictionary new
 ]
 
+{ #category : 'printing' }
+LLMParallelStep >> printOn: aStream [
+
+	aStream
+		nextPutAll: 'LLMParallelStep(';
+		print: branches size;
+		nextPutAll: ' branches)'
+]
+
 { #category : 'running' }
 LLMParallelStep >> processContext: aContext [
 	"Execute all branches with copies of the context, then merge results."
@@ -59,15 +68,6 @@ LLMParallelStep >> processContext: aContext [
 	aContext at: #parallelResults put: results.
 	aContext output: results.
 	^ aContext
-]
-
-{ #category : 'printing' }
-LLMParallelStep >> printOn: aStream [
-
-	aStream
-		nextPutAll: 'LLMParallelStep(';
-		print: branches size;
-		nextPutAll: ' branches)'
 ]
 
 { #category : 'validating' }

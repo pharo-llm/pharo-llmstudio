@@ -27,6 +27,12 @@ LLMPipelineContext class >> withVariables: aDictionary [
 		  yourself
 ]
 
+{ #category : 'error handling' }
+LLMPipelineContext >> addError: anError [
+
+	errors add: anError
+]
+
 { #category : 'accessing' }
 LLMPipelineContext >> at: aKey [
 
@@ -64,16 +70,16 @@ LLMPipelineContext >> copy [
 		  yourself
 ]
 
-{ #category : 'error handling' }
-LLMPipelineContext >> addError: anError [
-
-	errors add: anError
-]
-
 { #category : 'accessing' }
 LLMPipelineContext >> errors [
 
 	^ errors
+]
+
+{ #category : 'copying' }
+LLMPipelineContext >> errors: aCollection [
+
+	errors := aCollection asOrderedCollection
 ]
 
 { #category : 'testing' }

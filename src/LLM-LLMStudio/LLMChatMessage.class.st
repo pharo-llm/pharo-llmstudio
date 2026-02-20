@@ -11,6 +11,12 @@ Class {
 }
 
 { #category : 'instance creation' }
+LLMChatMessage class >> assistant: aString [
+
+	^ self role: 'assistant' content: aString
+]
+
+{ #category : 'instance creation' }
 LLMChatMessage class >> role: aRole content: aContent [
 
 	^ self new
@@ -29,12 +35,6 @@ LLMChatMessage class >> system: aString [
 LLMChatMessage class >> user: aString [
 
 	^ self role: 'user' content: aString
-]
-
-{ #category : 'instance creation' }
-LLMChatMessage class >> assistant: aString [
-
-	^ self role: 'assistant' content: aString
 ]
 
 { #category : 'converting' }

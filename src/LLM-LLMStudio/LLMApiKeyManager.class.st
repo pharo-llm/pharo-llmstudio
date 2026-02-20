@@ -1,11 +1,11 @@
 Class {
 	#name : 'LLMApiKeyManager',
 	#superclass : 'Object',
-	#classInstVars : [
-		'defaultInstance'
-	],
 	#instVars : [
 		'keys'
+	],
+	#classInstVars : [
+		'defaultInstance'
 	],
 	#category : 'LLM-LLMStudio-Connectors',
 	#package : 'LLM-LLMStudio',
@@ -18,16 +18,16 @@ LLMApiKeyManager class >> default [
 	^ defaultInstance ifNil: [ defaultInstance := self new ]
 ]
 
-{ #category : 'accessing' }
-LLMApiKeyManager class >> reset [
-
-	defaultInstance := nil
-]
-
 { #category : 'instance creation' }
 LLMApiKeyManager class >> new [
 
 	^ super new initialize
+]
+
+{ #category : 'accessing' }
+LLMApiKeyManager class >> reset [
+
+	defaultInstance := nil
 ]
 
 { #category : 'accessing' }

@@ -12,21 +12,21 @@ Class {
 }
 
 { #category : 'instance creation' }
+LLMConditionalStep class >> condition: aBlock ifTrue: aTrueStep [
+
+	^ self new
+		  conditionBlock: aBlock;
+		  trueStep: aTrueStep;
+		  yourself
+]
+
+{ #category : 'instance creation' }
 LLMConditionalStep class >> condition: aBlock ifTrue: aTrueStep ifFalse: aFalseStep [
 
 	^ self new
 		  conditionBlock: aBlock;
 		  trueStep: aTrueStep;
 		  falseStep: aFalseStep;
-		  yourself
-]
-
-{ #category : 'instance creation' }
-LLMConditionalStep class >> condition: aBlock ifTrue: aTrueStep [
-
-	^ self new
-		  conditionBlock: aBlock;
-		  trueStep: aTrueStep;
 		  yourself
 ]
 
