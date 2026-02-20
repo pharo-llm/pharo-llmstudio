@@ -1,8 +1,8 @@
 Class {
 	#name : 'BaselineOfLLMStudio',
 	#superclass : 'BaselineOf',
-	#category : 'BaselineOfLLMLLMStudio',
-	#package : 'BaselineOfLLMLLMStudio'
+	#category : 'BaselineOfLLMStudio',
+	#package : 'BaselineOfLLMStudio'
 }
 
 { #category : 'baselines' }
