@@ -101,17 +101,19 @@ LLMPipelineTracer >> runWith: aDictionary [
 	currentTrace markStarted.
 
 	[
-		self traceSteps: pipeline steps context: context.
-		currentTrace finalOutput: context output.
-		currentTrace markSuccess ]
-		on: Error
-		do: [ :err |
-			currentTrace markError.
-			currentTrace finalOutput: err messageText.
-			err pass ].
-
-	traces add: currentTrace.
-	announcer announce: (LLMTraceCompletedAnnouncement new trace: currentTrace).
+		[
+			self traceSteps: pipeline steps context: context.
+			currentTrace finalOutput: context output.
+			currentTrace markSuccess ]
+			on: Error
+			do: [ :err |
+				currentTrace markError.
+				currentTrace finalOutput: err messageText.
+				err pass ] ]
+		ensure: [
+			traces add: currentTrace.
+			announcer announce:
+				(LLMTraceCompletedAnnouncement new trace: currentTrace) ].
 	^ context
 ]
 
