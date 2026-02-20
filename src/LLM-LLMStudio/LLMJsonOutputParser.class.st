@@ -36,7 +36,7 @@ LLMJsonOutputParser >> parse: aString [
 
 	| jsonString parsed |
 	jsonString := self stripCodeBlock: aString.
-	[ parsed := NeoJSONReader fromString: jsonString ]
+	[ parsed :=  self parseJsonString: jsonString ]
 		on: Error
 		do: [ :e |
 			LLMValidationError signal:
@@ -46,6 +46,20 @@ LLMJsonOutputParser >> parse: aString [
 			  LLMValidationError signal:
 				  'Key not found in JSON output: ' , key ] ].
 	^ parsed
+]
+
+{ #category : 'private' }
+LLMJsonOutputParser >> parseJsonString: jsonString [
+	"Parse JSON using the preferred parser, with a fallback when NeoJSON is not loaded."
+
+	| parserClass |
+	parserClass := Smalltalk
+		               at: #NeoJSONReader
+		               ifAbsent: [ Smalltalk at: #STONJSON ifAbsent: [ nil ] ].
+	parserClass ifNil: [
+		LLMValidationError signal:
+			'No JSON parser available. Load NeoJSON or STONJSON.' ].
+	^ parserClass fromString: jsonString
 ]
 
 { #category : 'private' }
