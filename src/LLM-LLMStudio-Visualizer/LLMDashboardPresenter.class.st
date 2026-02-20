@@ -10,12 +10,22 @@ Class {
 		'conversationPresenter',
 		'metricsPresenter',
 		'toolbar',
-		'statusBar'
+		'statusBar',
+		'lastRunInputs'
 	],
 	#category : 'LLM-LLMStudio-Visualizer-UI',
 	#package : 'LLM-LLMStudio-Visualizer',
 	#tag : 'UI'
 }
+
+{ #category : 'opening' }
+LLMDashboardPresenter class >> open [
+	"Open a fresh dashboard with no pipeline. Use New Pipeline to create one."
+
+	| tracer |
+	tracer := LLMPipelineTracer new.
+	^ self openOn: tracer
+]
 
 { #category : 'opening' }
 LLMDashboardPresenter class >> openOn: aTracer [
@@ -39,20 +49,20 @@ LLMDashboardPresenter class >> openOnPipeline: aPipeline [
 LLMDashboardPresenter >> buildToolbar [
 
 	^ self newToolbar
-		  addItem: (SpToolbarButtonPresenter new
-				   label: 'Refresh';
-				   icon: (self iconNamed: #smallUpdate);
-				   action: [ self refreshAll ];
+		   addItem: (SpToolbarButtonPresenter new
+				   label: 'New Pipeline';
+				   icon: (self iconNamed: #smallAdd);
+				   action: [ self openPipelineBuilder ];
 				   yourself);
 		  addItem: (SpToolbarButtonPresenter new
-				   label: 'Clear';
-				   icon: (self iconNamed: #smallDelete);
-				   action: [ self clearTraces ];
+				   label: 'Run';
+				   icon: (self iconNamed: #smallDoIt);
+				   action: [ self runPipeline ];
 				   yourself);
 		  addItem: (SpToolbarButtonPresenter new
-				   label: 'Export';
-				   icon: (self iconNamed: #smallSave);
-				   action: [ self exportTrace ];
+				   label: 'Re-Run';
+				   icon: (self iconNamed: #smallRedo);
+				   action: [ self reRunPipeline ];
 				   yourself);
 		  yourself
 ]
@@ -86,6 +96,53 @@ LLMDashboardPresenter >> defaultLayout [
 				   yourself);
 		  add: statusBar expand: false;
 		  yourself
+]
+
+{ #category : 'private' }
+LLMDashboardPresenter >> detectVariablesFromPipeline [
+
+	"Extract variable names from the pipeline's prompt steps."
+
+	| variables |
+	variables := OrderedCollection new.
+	tracer pipeline ifNil: [ ^ #() ].
+	tracer pipeline steps do: [ :step |
+		(step isKindOf: LLMPromptStep) ifTrue: [
+			step promptTemplate ifNotNil: [ :pt |
+				pt inputVariables do: [ :v |
+					(variables includes: v) ifFalse: [ variables add: v ] ] ].
+			step chatPromptTemplate ifNotNil: [ :cpt |
+				(cpt respondsTo: #inputVariables) ifTrue: [
+					cpt inputVariables do: [ :v |
+						(variables includes: v) ifFalse: [ variables add: v ] ] ] ] ] ].
+	^ variables asArray
+]
+
+{ #category : 'private' }
+LLMDashboardPresenter >> executePipelineWith: aDictionary [
+	"Actually execute the pipeline with the given input dictionary via the tracer."
+
+	| context |
+	tracer ifNil: [
+		self inform: 'No tracer available.'.
+		^ self ].
+	tracer pipeline ifNil: [
+		self inform: 'No pipeline configured. Use "New Pipeline" first.'.
+		^ self ].
+
+	lastRunInputs := aDictionary copy.
+	statusBar pushMessage: 'Running pipeline...'.
+
+	[
+		[ context := tracer runWith: aDictionary.
+		  self defer: [
+			  statusBar pushMessage: 'Pipeline completed successfully.'.
+			  self refreshAll ] ]
+			on: Error
+			do: [ :err |
+				self defer: [
+					statusBar pushMessage: 'Pipeline failed: ' , err messageText.
+					self refreshAll ] ] ] fork
 ]
 
 { #category : 'actions' }
@@ -198,12 +255,69 @@ LLMDashboardPresenter >> initializeWindow: aWindowPresenter [
 		whenClosedDo: [ self unsubscribeFromTracer ]
 ]
 
+{ #category : 'private' }
+LLMDashboardPresenter >> openPipelineBuilder [
+	"Open the pipeline builder dialog. When pipeline is created, set it on the tracer."
+
+	LLMPipelineBuilderPresenter openWithRunCallback: [ :pipeline |
+		self setPipeline: pipeline.
+		self runPipeline ]
+]
+
+{ #category : 'private' }
+LLMDashboardPresenter >> reRunPipeline [
+	"Re-run the pipeline with the same inputs as the last run."
+
+	tracer ifNil: [ ^ self ].
+	tracer pipeline ifNil: [
+		self inform: 'No pipeline configured. Use "New Pipeline" first.'.
+		^ self ].
+
+	lastRunInputs
+		ifNotNil: [ self executePipelineWith: lastRunInputs ]
+		ifNil: [
+			"Fall back to run with fresh inputs"
+			self runPipeline ]
+]
+
 { #category : 'actions' }
 LLMDashboardPresenter >> refreshAll [
 
 	tracer ifNil: [ ^ self ].
 	runListPresenter traces: tracer traces.
 	tracer lastTrace ifNotNil: [ :t | self showTrace: t ]
+]
+
+{ #category : 'private' }
+LLMDashboardPresenter >> runPipeline [
+	"Open the input variable dialog and run the pipeline."
+
+	| variables |
+	tracer ifNil: [ ^ self ].
+	tracer pipeline ifNil: [
+		self inform: 'No pipeline configured. Use "New Pipeline" first.'.
+		^ self ].
+
+	variables := self detectVariablesFromPipeline.
+	variables ifEmpty: [
+		"No variables needed, just run directly"
+		self executePipelineWith: Dictionary new.
+		^ self ].
+
+	LLMRunInputPresenter
+		openForVariables: variables
+		withDefaults: lastRunInputs
+		onRun: [ :inputs | self executePipelineWith: inputs ]
+]
+
+{ #category : 'private' }
+LLMDashboardPresenter >> setPipeline: aPipeline [
+	"Set or replace the pipeline on the tracer."
+
+	tracer ifNil: [ tracer := LLMPipelineTracer new ].
+	tracer pipeline: aPipeline.
+	statusBar pushMessage: 'Pipeline "' , aPipeline name , '" loaded.'.
+	self refreshAll
 ]
 
 { #category : 'actions' }
@@ -222,7 +336,7 @@ LLMDashboardPresenter >> subscribeToTracer [
 	tracer ifNil: [ ^ self ].
 	tracer announcer
 		when: LLMTraceCompletedAnnouncement
-		do: [ :ann | self refreshAll ]
+		do: [ :ann | self defer: [ self refreshAll ] ]
 		for: self
 ]
 
