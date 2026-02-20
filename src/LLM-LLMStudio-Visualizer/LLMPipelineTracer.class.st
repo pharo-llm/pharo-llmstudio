@@ -92,6 +92,8 @@ LLMPipelineTracer >> runWith: aDictionary [
 	"Run the pipeline with tracing. Records all step executions."
 
 	| context |
+	pipeline ifNil: [
+		LLMValidationError signal: 'No pipeline configured. Create one first.' ].
 	pipeline validate.
 	context := LLMPipelineContext withVariables: aDictionary.
 	currentTrace := LLMExecutionTrace pipelineName: pipeline name.
